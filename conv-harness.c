@@ -1,3 +1,5 @@
+//Áine Hyndman, Kyara McWilliam, Matthew Poole
+
 /* Test and timing harness program for developing a multichannel
    multikernel convolution (as used in deep learning networks)
 
@@ -313,8 +315,8 @@ void multichannel_conv(float *** image, int16_t **** kernels,
               sum += image[w+x][h+y][c] * kernels[m][c][x][y];
             }
           }
-          output[m][w][h] = (float) sum;
         }
+        output[m][w][h] = (float) sum;
       }
     }
   }
