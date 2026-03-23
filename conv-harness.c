@@ -323,6 +323,7 @@ void multichannel_conv(float *** image, int16_t **** kernels,
   }
 }
 
+// initliazed the helper struct 
 struct thread_args {
   int start;
   int end;
@@ -334,6 +335,7 @@ struct thread_args {
 
 const int NTHREADS = 9;
 
+// helper
 void * thread_new_util(void * arg);
 
 /* the fast version of conv written by the student using pthreads */
@@ -345,9 +347,11 @@ void student_conv_pthreads(float *** image, int16_t **** kernels, float *** outp
   // insert your own code instead
 
   pthread_t threads[NTHREADS];
+  // initializing the thread array
   struct thread_args thread_array[NTHREADS];
   int kernels_per_thread = nkernels / NTHREADS;
 
+  // setting each value 
   for (int i = 0; i < NTHREADS; i++) {
     thread_array[i].image = image;
     thread_array[i].kernels = kernels;
@@ -357,7 +361,10 @@ void student_conv_pthreads(float *** image, int16_t **** kernels, float *** outp
     thread_array[i].n_ch = nchannels;
     thread_array[i].k_ord = kernel_order;
 
+    // assigning each thread a range of kernels to process
     thread_array[i].start = i * kernels_per_thread;
+    // if index is equal to number of thread indexes, store number of kernels,
+    // otherwise store sum of start value and number of kernels per thread
     thread_array[i].end = (i == NTHREADS-1) ? nkernels : thread_array[i].start + kernels_per_thread;
 
     pthread_create(&threads[i], NULL, thread_new_util, &thread_array[i]);
@@ -369,13 +376,18 @@ void student_conv_pthreads(float *** image, int16_t **** kernels, float *** outp
 
 }
 
+// helper function that carries out the multi convolution logic
 void * thread_new_util(void * arg) {
+  // converting void * parameter into a struct
   struct thread_args * thr_args = (struct thread_args *) arg;
   int m, h, w, x, y, c;
 
+  // process each kernel assigned to this thread 
   for (m = thr_args->start; m < thr_args->end; m++ ) {
+    // computing convolution for every pixel in assigned kernels
     for (w = 0; w < thr_args->w; w++) {
       for (h = 0; h < thr_args->h; h++) {
+        // initializing result variable to accumulate the convolution result for this pixel
         double sum = 0.0;
         for (c = 0; c < thr_args->n_ch; c++) {
           for (x = 0; x < thr_args->k_ord; x++) {
@@ -384,6 +396,7 @@ void * thread_new_util(void * arg) {
             }
           }
         }
+        // storing the computed convolution for this kernel and pixel
         thr_args->output[m][w][h] = (float) sum;
       }
     }
