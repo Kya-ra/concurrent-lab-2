@@ -43,6 +43,7 @@
 #include <omp.h>
 #include <math.h>
 #include <stdint.h>
+#include <pthread.h>
 
 /* the following two definitions of DEBUGGING control whether or not
    debugging information is written out. To put the program into
@@ -322,6 +323,19 @@ void multichannel_conv(float *** image, int16_t **** kernels,
   }
 }
 
+struct thread_args {
+  int start;
+  int end;
+  float ***image;
+  int16_t ****kernels;
+  float ***output;
+  int w, h, n_ch, n_k, k_ord;
+};
+
+const int NTHREADS = 9;
+
+void * thread_new_util(void * arg);
+
 /* the fast version of conv written by the student using pthreads */
 void student_conv_pthreads(float *** image, int16_t **** kernels, float *** output,
                int width, int height, int nchannels, int nkernels,
@@ -329,8 +343,52 @@ void student_conv_pthreads(float *** image, int16_t **** kernels, float *** outp
 {
   // this call here is just dummy code that calls the slow, simple, correct version.
   // insert your own code instead
-  multichannel_conv(image, kernels, output, width,
-                    height, nchannels, nkernels, kernel_order);
+
+  pthread_t threads[NTHREADS];
+  struct thread_args thread_array[NTHREADS];
+  int kernels_per_thread = nkernels / NTHREADS;
+
+  for (int i = 0; i < NTHREADS; i++) {
+    thread_array[i].image = image;
+    thread_array[i].kernels = kernels;
+    thread_array[i].output = output;
+    thread_array[i].w = width;
+    thread_array[i].h = height; 
+    thread_array[i].n_ch = nchannels;
+    thread_array[i].k_ord = kernel_order;
+
+    thread_array[i].start = i * kernels_per_thread;
+    thread_array[i].end = (i == NTHREADS-1) ? nkernels : thread_array[i].start + kernels_per_thread;
+
+    pthread_create(&threads[i], NULL, thread_new_util, &thread_array[i]);
+  }
+
+  for (int i = 0; i < NTHREADS; i++) {
+    pthread_join(threads[i], NULL);
+  }
+
+}
+
+void * thread_new_util(void * arg) {
+  struct thread_args * thr_args = (struct thread_args *) arg;
+  int m, h, w, x, y, c;
+
+  for (m = thr_args->start; m < thr_args->end; m++ ) {
+    for (w = 0; w < thr_args->w; w++) {
+      for (h = 0; h < thr_args->h; h++) {
+        double sum = 0.0;
+        for (c = 0; c < thr_args->n_ch; c++) {
+          for (x = 0; x < thr_args->k_ord; x++) {
+            for (y = 0; y < thr_args->k_ord; y++) {
+              sum += thr_args->image[w+x][h+y][c] * thr_args->kernels[m][c][x][y];
+            }
+          }
+        }
+        thr_args->output[m][w][h] = (float) sum;
+      }
+    }
+  }
+  return NULL;
 }
 
 /* the fast version of conv written by the student using OpenMP */
