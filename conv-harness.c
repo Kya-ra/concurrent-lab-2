@@ -285,7 +285,7 @@ void check_result(float *** result, float *** control,
         double diff = fabs(control[i][j][k] - result[i][j][k]);
         assert( diff >= 0.0 );
         sum_abs_diff = sum_abs_diff + diff;
-	sum_abs = fabs(control[i][j][k]);
+	      sum_abs += fabs(control[i][j][k]);
       }
     }
   }

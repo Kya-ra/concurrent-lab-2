@@ -12,7 +12,7 @@ run_case() {
     times1=()
     times2=()
 
-    for run in {1..5}
+    for run in {1..3}
     do
         output=$(./a.out "$p1" "$p2" "$p3" "$p4" "$p5")
 
