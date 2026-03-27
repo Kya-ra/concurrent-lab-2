@@ -415,6 +415,16 @@ void student_conv_openmp(float *** image, int16_t **** kernels, float *** output
                     height, nchannels, nkernels, kernel_order);
 }
 
+/* the fast version of conv written by the student using OpenMP */
+void student_conv_control(float *** image, int16_t **** kernels, float *** output,
+                         int width, int height, int nchannels, int nkernels,
+                         int kernel_order)
+{
+  // this call here is just dummy code that calls the slow, simple, correct version.
+  // insert your own code instead
+  multichannel_conv(image, kernels, output, width,
+                    height, nchannels, nkernels, kernel_order);
+}
 
 
 int main(int argc, char ** argv)
@@ -503,6 +513,15 @@ int main(int argc, char ** argv)
   /* now check that the student's multichannel convolution routine
      gives the same answer as the known working version */
   check_result(output, control_output, nkernels, width, height);
+
+  gettimeofday(&start_time, NULL);
+  student_conv_control(image, kernels, output, width,
+                      height, nchannels, nkernels, kernel_order);
+  gettimeofday(&stop_time, NULL);
+
+  mul_time = (stop_time.tv_sec - start_time.tv_sec) * 1000000L +
+  (stop_time.tv_usec - start_time.tv_usec);
+  printf("Control conv time: %lld microseconds\n", mul_time);
 
   return 0;
 }
