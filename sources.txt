@@ -1,0 +1,2 @@
+https://www.geeksforgeeks.org/c/c-parallel-for-loop-in-openmp/
+https://learn.microsoft.com/en-us/cpp/parallel/openmp/reference/openmp-clauses?view=msvc-170

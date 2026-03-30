@@ -295,7 +295,7 @@ void check_result(float *** result, float *** control,
             sum_abs_diff, EPSILON*sum_abs);
   }
   else {
-    printf("COMMENT: sum of absolute differences (%f)  within acceptable range (%f)\n", sum_abs_diff, EPSILON);
+    //printf("COMMENT: sum of absolute differences (%f)  within acceptable range (%f)\n", sum_abs_diff, EPSILON);
   }
 }
 
@@ -316,8 +316,8 @@ void multichannel_conv(float *** image, int16_t **** kernels,
               sum += image[w+x][h+y][c] * kernels[m][c][x][y];
             }
           }
+          output[m][w][h] = (float) sum;
         }
-        output[m][w][h] = (float) sum;
       }
     }
   }
@@ -409,10 +409,25 @@ void student_conv_openmp(float *** image, int16_t **** kernels, float *** output
                int width, int height, int nchannels, int nkernels,
                int kernel_order)
 {
-  // this call here is just dummy code that calls the slow, simple, correct version.
-  // insert your own code instead
-  multichannel_conv(image, kernels, output, width,
-                    height, nchannels, nkernels, kernel_order);
+
+  int h, w, x, y, c, m;
+
+  #pragma omp parallel for private(h,w,x,y,c) collapse(3)
+  for (m = 0; m < nkernels; m++) {
+    for (w = 0; w < width; w++) {
+      for (h = 0; h < height; h++) {
+        double sum = 0.0;
+        for (c = 0; c < nchannels; c++) {
+          for (x = 0; x < kernel_order; x++) {
+            for (y = 0; y < kernel_order; y++) {
+              sum += image[w + x][h + y][c] * kernels[m][c][x][y];
+            }
+          }
+        }
+        output[m][w][h] = (float)sum;
+      }
+    }
+  }
 }
 
 /* the fast version of conv written by the student using OpenMP */
@@ -436,10 +451,10 @@ int main(int argc, char ** argv)
   float *** image;
   int16_t **** kernels;
   float *** control_output, *** output;
-  long long mul_time;
   int width, height, kernel_order, nchannels, nkernels;
   struct timeval start_time;
   struct timeval stop_time;
+  long long mul_time_pthread, mul_time_openmp, mul_time_control;
 
   if ( argc != 6 ) {
     fprintf(stderr, "Usage: conv-harness <image_width> <image_height> <kernel_order> <number of channels> <number of kernels>\n");
@@ -485,9 +500,9 @@ int main(int argc, char ** argv)
 
   /* record finishing time */
   gettimeofday(&stop_time, NULL);
-  mul_time = (stop_time.tv_sec - start_time.tv_sec) * 1000000L +
+  mul_time_pthread = (stop_time.tv_sec - start_time.tv_sec) * 1000000L +
     (stop_time.tv_usec - start_time.tv_usec);
-  printf("Student pthreads conv time: %lld microseconds\n", mul_time);
+  printf("Student pthreads conv time: %lld microseconds\n", mul_time_pthread);
 
   /* now check that the student's multichannel convolution routine
      gives the same answer as the known working version */
@@ -504,9 +519,9 @@ int main(int argc, char ** argv)
 
   /* record finishing time */
   gettimeofday(&stop_time, NULL);
-  mul_time = (stop_time.tv_sec - start_time.tv_sec) * 1000000L +
+  mul_time_openmp = (stop_time.tv_sec - start_time.tv_sec) * 1000000L +
     (stop_time.tv_usec - start_time.tv_usec);
-  printf("Student pthreads conv time: %lld microseconds\n", mul_time);
+  printf("Student openmp conv time: %lld microseconds\n", mul_time_openmp);
 
   DEBUGGING(write_out(output, nkernels, width, height));
 
@@ -519,9 +534,9 @@ int main(int argc, char ** argv)
                       height, nchannels, nkernels, kernel_order);
   gettimeofday(&stop_time, NULL);
 
-  mul_time = (stop_time.tv_sec - start_time.tv_sec) * 1000000L +
+  mul_time_control = (stop_time.tv_sec - start_time.tv_sec) * 1000000L +
   (stop_time.tv_usec - start_time.tv_usec);
-  printf("Control conv time: %lld microseconds\n", mul_time);
+  printf("Control conv time: %lld microseconds\n", mul_time_control);
 
   return 0;
 }

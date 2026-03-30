@@ -1,0 +1,35 @@
+kyaramcw@stoker:~/Documents/Concurrent/lab2$ ./a.out 16 16 1 32 32
+Student pthreads conv time: 1715 microseconds
+Student openmp conv time: 9523 microseconds
+Control conv time: 5351 microseconds
+
+kyaramcw@stoker:~/Documents/Concurrent/lab2$ ./a.out 16 16 1 2048 2048
+Student pthreads conv time: 1371319 microseconds
+Student openmp conv time: 296409 microseconds
+Control conv time: 6658430 microseconds
+
+kyaramcw@stoker:~/Documents/Concurrent/lab2$ ./a.out 16 16 7 32 32
+Student pthreads conv time: 20018 microseconds
+Student openmp conv time: 10675 microseconds
+Control conv time: 50694 microseconds
+
+kyaramcw@stoker:~/Documents/Concurrent/lab2$ ./a.out 16 16 7 2048 2048
+Student pthreads conv time: 21200320 microseconds
+Student openmp conv time: 6334710 microseconds
+Control conv time: 176721952 microseconds
+
+kyaramcw@stoker:~/Documents/Concurrent/lab2$ ./a.out 512 512 1 32 32
+Student pthreads conv time: 499942 microseconds
+Student openmp conv time: 108829 microseconds
+Control conv time: 2353443 microseconds
+
+kyaramcw@stoker:~/Documents/Concurrent/lab2$ ./a.out 512 512 7 32 32
+Student pthreads conv time: 7622018 microseconds
+Student openmp conv time: 1488627 microseconds
+Control conv time: 23717192 microseconds
+
+kyaramcw@stoker:~/Documents/Concurrent/lab2$ ./a.out 256 256 3 256 256
+Student pthreads conv time: 13162878 microseconds
+Student openmp conv time: 3139204 microseconds
+Control conv time: 96123042 microseconds
+
